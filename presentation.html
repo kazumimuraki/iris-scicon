@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>Sci-CON 2026 — AI、使いこなせてる？</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/plugin/highlight/monokai.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css">
+<style>
+:root{
+  --bg:#080c1a;--card:rgba(10,18,42,.82);--cyan:#00d4ff;--purple:#7c6fff;
+  --green:#00ffaa;--yellow:#fbbf24;--red:#ff4d6d;--orange:#fb923c;
+  --txt:#e2e8f0;--txt2:#94a3b8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+.reveal{font-family:'SF Pro Display','Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);color:var(--txt)}
+.reveal .slides section{text-align:left;padding:0!important;height:100vh}
+.reveal h1,.reveal h2,.reveal h3{text-transform:none!important}
+.reveal .progress span{background:var(--cyan);box-shadow:0 0 8px rgba(0,212,255,.7)}
+.reveal .controls{color:var(--cyan)}
+#pcv{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+/* ネオン */
+.nc{color:var(--cyan);text-shadow:0 0 16px rgba(0,212,255,.9),0 0 40px rgba(0,212,255,.3)}
+.np{color:var(--purple);text-shadow:0 0 16px rgba(124,111,255,.9)}
+
+/* ── 共通：フルスクリーンスライドベース ── */
+.slide{position:relative;width:100%;height:100vh;display:flex;overflow:hidden}
+.bg-img{position:absolute;inset:0;background-size:cover;background-position:center}
+.bg-ov{position:absolute;inset:0}
+
+/* ── SLIDE 0: タイトル ── */
+.s0-bg{background-image:url('img/ai_glow.jpg');opacity:.55}
+.s0-ov{background:linear-gradient(135deg,rgba(8,12,26,.88) 0%,rgba(8,12,26,.55) 60%,rgba(124,111,255,.1) 100%)}
+.s0-body{position:relative;z-index:10;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:28px;padding:48px}
+.s0-tag{font-size:.55em;letter-spacing:5px;color:var(--txt2);border:1px solid rgba(0,212,255,.3);padding:6px 28px;border-radius:20px;background:rgba(0,212,255,.05)}
+.s0-h{font-size:3.8em!important;line-height:1.1;background:linear-gradient(135deg,#fff 10%,var(--cyan) 52%,var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.s0-sub{font-size:.72em;color:var(--txt2);letter-spacing:2px}
+.chips{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.chip{padding:8px 24px;border-radius:20px;font-size:.52em;font-weight:700;letter-spacing:1px}
+.cc{background:rgba(0,212,255,.12);border:1px solid rgba(0,212,255,.4);color:var(--cyan)}
+.cp{background:rgba(124,111,255,.12);border:1px solid rgba(124,111,255,.4);color:var(--purple)}
+.cg{background:rgba(0,255,170,.12);border:1px solid rgba(0,255,170,.4);color:var(--green)}
+.s0-pres{font-size:.55em;color:var(--txt2);letter-spacing:2px}
+
+/* ── SLIDE 1: アジェンダ ── */
+.s1-bg{background-image:url('img/ai_circuit.jpg');opacity:.45}
+.s1-ov{background:linear-gradient(to right,rgba(8,12,26,.97) 50%,rgba(8,12,26,.5))}
+.agenda-body{position:relative;z-index:10;width:100%;display:flex;align-items:center;padding:48px 60px;gap:60px}
+.agenda-left{flex:0 0 280px}
+.agenda-label{font-size:.55em;letter-spacing:4px;color:var(--txt2);text-transform:uppercase;margin-bottom:12px}
+.agenda-h{font-size:2em!important;line-height:1.2;margin-bottom:12px}
+.agenda-sub{font-size:.62em;color:var(--txt2);line-height:1.9}
+.agenda-right{flex:1;display:flex;flex-direction:column;gap:16px}
+.ag-item{display:flex;align-items:center;gap:20px;background:var(--card);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:18px 24px}
+.ag-num{font-size:1.4em;font-weight:900;color:var(--cyan);opacity:.6;width:36px;flex-shrink:0}
+.ag-title{font-size:.82em;font-weight:700}
+.ag-time{margin-left:auto;font-size:.6em;color:var(--txt2);letter-spacing:1px;white-space:nowrap}
+
+/* ── SLIDE 2: AI勢力図 ── */
+.map-body{position:relative;z-index:10;width:100%;display:flex;align-items:center;padding:40px 48px;gap:36px}
+.map-left{flex:0 0 260px}
+.map-h{font-size:2em!important;line-height:1.2;margin-bottom:12px}
+.map-sub{font-size:.65em;color:var(--txt2);line-height:1.9}
+.map-right{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.aicard{background:rgba(8,12,26,.68);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:22px;position:relative;overflow:hidden}
+.aicard.winner{border-color:rgba(124,111,255,.55);background:linear-gradient(140deg,rgba(124,111,255,.25),rgba(0,212,255,.1));box-shadow:0 0 40px rgba(124,111,255,.2)}
+.aicard-em{font-size:2.4em;margin-bottom:10px}
+.aicard-name{font-size:.9em;font-weight:800;letter-spacing:1px;margin-bottom:2px}
+.aicard-maker{font-size:.5em;color:var(--txt2);margin-bottom:14px}
+.bar-row{margin-bottom:9px}
+.bar-label{font-size:.5em;color:var(--txt2);margin-bottom:3px;display:flex;justify-content:space-between}
+.bar-track{height:6px;border-radius:4px;background:rgba(255,255,255,.07)}
+.bar-fill{height:100%;border-radius:4px}
+.bg{background:linear-gradient(90deg,#00ffaa,rgba(0,255,170,.4))}
+.bc{background:linear-gradient(90deg,#00d4ff,rgba(0,212,255,.4))}
+.bp{background:linear-gradient(90deg,#7c6fff,rgba(124,111,255,.4))}
+.bo{background:linear-gradient(90deg,#fb923c,rgba(251,146,60,.4))}
+.aicard-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.tag{font-size:.45em;padding:3px 10px;border-radius:8px;font-weight:600}
+.tg{background:rgba(0,255,170,.1);color:#00ffaa;border:1px solid rgba(0,255,170,.2)}
+.tr{background:rgba(255,77,109,.1);color:var(--red);border:1px solid rgba(255,77,109,.2)}
+.tn{background:rgba(148,163,184,.07);color:var(--txt2);border:1px solid rgba(148,163,184,.12)}
+.winner-badge{position:absolute;top:12px;right:12px;font-size:.42em;padding:3px 12px;border-radius:8px;background:rgba(124,111,255,.25);color:var(--purple);border:1px solid rgba(124,111,255,.4);font-weight:700}
+
+/* ── SLIDE 3-6: AI詳細（共通） ── */
+.detail-slide{position:relative;width:100%;height:100vh;display:flex;align-items:stretch;overflow:hidden}
+.detail-bg{position:absolute;inset:0;background-size:cover;background-position:center}
+.detail-ov{position:absolute;inset:0}
+.detail-body{position:relative;z-index:10;display:flex;width:100%;align-items:center;padding:36px 48px;gap:36px}
+.detail-left{flex:0 0 280px;display:flex;flex-direction:column;gap:16px}
+.hero-card{background:rgba(8,12,26,.85);backdrop-filter:blur(16px);border-radius:22px;padding:28px;text-align:center;border:1px solid rgba(255,255,255,.15)}
+.hero-em{font-size:3.8em;display:block;margin-bottom:12px}
+.hero-name{font-size:1.1em;font-weight:900;letter-spacing:2px;margin-bottom:8px}
+.hero-sub{font-size:.55em;color:var(--txt2);line-height:1.9}
+.scores{background:rgba(8,12,26,.75);backdrop-filter:blur(14px);border-radius:14px;padding:18px;border:1px solid rgba(255,255,255,.1)}
+.sc-row{margin-bottom:10px}
+.sc-label{font-size:.52em;color:var(--txt2);margin-bottom:4px;display:flex;justify-content:space-between}
+.sc-bar{height:6px;border-radius:4px;background:rgba(255,255,255,.07)}
+.sc-fill{height:100%;border-radius:4px}
+.detail-right{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:16px;align-content:center}
+.uc{background:rgba(8,12,26,.72);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:22px 24px;display:flex;flex-direction:column;gap:10px}
+.uc.hl{border-color:rgba(0,212,255,.35);background:rgba(0,60,80,.32)}
+.uc-icon{font-size:2em}
+.uc-title{font-size:.78em;font-weight:700;line-height:1.4;color:#fff}
+.uc-ex{font-size:.58em;color:rgba(0,212,255,.75);padding:5px 10px;background:rgba(0,212,255,.07);border-left:2px solid var(--cyan);border-radius:0 6px 6px 0;font-style:italic;line-height:1.6}
+
+/* ── SLIDE 7: プロンプト3原則 ── */
+.prompt-body{position:relative;z-index:10;width:100%;display:flex;align-items:center;padding:40px 56px;gap:44px}
+.prompt-left{flex:0 0 300px}
+.prompt-h{font-size:2em!important;line-height:1.2;margin-bottom:14px}
+.prompt-sub{font-size:.65em;color:var(--txt2);line-height:1.9}
+.prompt-right{flex:1;display:flex;flex-direction:column;gap:18px}
+.pr-card{background:var(--card);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:24px 28px;display:grid;grid-template-columns:64px 1fr;gap:16px;align-items:center}
+.pr-num{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4em;font-weight:900;flex-shrink:0}
+.pr-content{}
+.pr-title{font-size:.85em;font-weight:800;margin-bottom:4px}
+.pr-bad{font-size:.58em;color:var(--red);background:rgba(255,77,109,.08);border:1px solid rgba(255,77,109,.15);border-radius:6px;padding:4px 10px;margin-bottom:4px}
+.pr-good{font-size:.58em;color:var(--green);background:rgba(0,255,170,.08);border:1px solid rgba(0,255,170,.15);border-radius:6px;padding:4px 10px}
+
+/* ── SLIDE 8: AI選択フロー ── */
+.flow-body{position:relative;z-index:10;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:36px 52px;gap:28px}
+.flow-h{font-size:2em!important;text-align:center}
+.flow-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;width:100%}
+.flow-card{background:var(--card);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:22px 18px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px}
+.flow-q{font-size:.7em;color:var(--txt2);line-height:1.6}
+.flow-arrow{font-size:1.4em;color:var(--cyan)}
+.flow-ai{font-size:1.6em}
+.flow-name{font-size:.75em;font-weight:800}
+.flow-why{font-size:.55em;color:var(--txt2);line-height:1.6}
+
+/* ── SLIDE 9: Claude vs Claude Code ── */
+.vs-slide{position:relative;width:100%;height:100vh;display:flex;align-items:stretch;overflow:hidden}
+.vs-bg{position:absolute;inset:0;background-image:url('img/laptop_dark.jpg');background-size:cover;opacity:.6}
+.vs-ov{position:absolute;inset:0;background:rgba(8,12,26,.6)}
+.vs-body{position:relative;z-index:10;width:100%;padding:36px 52px;display:flex;flex-direction:column;justify-content:center;gap:20px}
+.vs-hd{margin-bottom:4px}
+.vs-hl{font-size:.55em;letter-spacing:4px;color:var(--txt2);text-transform:uppercase}
+.vs-h{font-size:1.6em!important;margin-bottom:4px}
+.vs-sub{font-size:.62em;color:var(--txt2)}
+.vs-wrap{display:grid;grid-template-columns:1fr 52px 1fr;gap:0;align-items:center}
+.vc{background:rgba(8,12,26,.72);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:24px 28px}
+.vc.win{border-color:rgba(124,111,255,.55);background:linear-gradient(150deg,rgba(124,111,255,.22),rgba(0,212,255,.08));box-shadow:0 0 40px rgba(124,111,255,.2)}
+.vc h3{font-size:.85em;margin-bottom:16px;font-weight:700}
+.vr{display:flex;align-items:center;gap:12px;font-size:.65em;margin-bottom:10px}
+.vi{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.85em;flex-shrink:0}
+.vi.ok{background:rgba(0,255,170,.15)}.vi.no{background:rgba(255,77,109,.1)}
+.vt{color:var(--txt2)}.vt.b{color:var(--txt)}
+.varrow{text-align:center;font-size:2em;color:var(--cyan);text-shadow:0 0 16px rgba(0,212,255,.7)}
+.vbot{text-align:center;font-size:.6em;color:var(--txt2);border-top:1px solid rgba(255,255,255,.06);padding-top:14px;line-height:2.4;margin-top:8px}
+
+/* ── SLIDE 10: アイリス紹介 ── */
+.intro-slide{position:relative;width:100%;height:100vh;display:flex;align-items:stretch;overflow:hidden}
+.intro-bg{position:absolute;inset:0;background-image:url('img/ai_glow.jpg');background-size:cover;background-position:right;opacity:.55}
+.intro-ov{position:absolute;inset:0;background:linear-gradient(to right,rgba(8,12,26,.98) 52%,rgba(8,12,26,.4))}
+.intro-body{position:relative;z-index:10;display:flex;width:100%;align-items:center;padding:40px 52px;gap:48px}
+.intro-left{flex:0 0 300px;display:flex;flex-direction:column;gap:16px}
+.intro-tag{font-size:.5em;letter-spacing:4px;color:var(--txt2);text-transform:uppercase;margin-bottom:4px}
+.intro-h{font-size:2.4em!important;line-height:1.15;margin-bottom:8px}
+.intro-pos{font-size:.6em;color:rgba(0,212,255,.7);letter-spacing:1px;margin-bottom:16px}
+.intro-right{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:14px;align-content:center}
+.ic{background:rgba(8,12,26,.72);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:20px 22px}
+.ic-em{font-size:1.8em;margin-bottom:8px}
+.ic-title{font-size:.72em;font-weight:700;margin-bottom:4px}
+.ic-body{font-size:.58em;color:var(--txt2);line-height:1.7}
+
+/* ── SLIDE 11: Q&A ── */
+.qa-slide{position:relative;width:100%;height:100vh;display:flex;overflow:hidden}
+.qa-bg{position:absolute;inset:0;background-image:url('img/ai_glow.jpg');background-size:cover;background-position:right;opacity:.55}
+.qa-ov{position:absolute;inset:0;background:linear-gradient(to right,rgba(8,12,26,.97) 45%,rgba(8,12,26,.55))}
+.qa-body{position:relative;z-index:10;display:grid;grid-template-columns:42% 58%;width:100%;height:100%}
+.qa-left{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 16px 24px 32px;gap:14px}
+.qa-aw{position:relative;width:300px;height:373px}
+.qa-glow{position:absolute;inset:-24px;border-radius:50%;background:radial-gradient(circle,rgba(124,111,255,.22) 0%,transparent 70%);animation:breathe 4s ease-in-out infinite;transition:background .4s}
+.qa-glow.thinking{background:radial-gradient(circle,rgba(251,191,36,.32) 0%,transparent 70%);animation:pf .65s infinite}
+.qa-glow.talking{background:radial-gradient(circle,rgba(0,212,255,.42) 0%,transparent 65%);animation:pt .32s ease-in-out infinite alternate}
+#irisVideo{width:100%;height:100%;border-radius:22px;border:2px solid var(--cyan);box-shadow:0 0 60px rgba(0,212,255,.4);object-fit:cover;display:none}
+#irisVideo.active{display:block}
+#irisCanvas{width:100%;height:100%;border-radius:22px;border:2px solid rgba(124,111,255,.5);box-shadow:0 0 40px rgba(124,111,255,.22);transition:border-color .4s,box-shadow .4s;display:block}
+#irisCanvas.thinking{border-color:rgba(251,191,36,.85);box-shadow:0 0 50px rgba(251,191,36,.28)}
+#irisCanvas.talking{border-color:var(--cyan);box-shadow:0 0 60px rgba(0,212,255,.4),0 0 100px rgba(0,212,255,.1)}
+.qa-np{text-align:center;background:rgba(8,12,26,.9);border:1px solid rgba(0,212,255,.2);border-radius:12px;padding:10px 28px;width:100%}
+.qa-name{font-size:.95em;font-weight:800;letter-spacing:4px;color:var(--cyan);text-shadow:0 0 12px rgba(0,212,255,.6)}
+.qa-rank{font-size:.45em;color:var(--txt2);margin-top:2px;letter-spacing:1px}
+.qa-st{display:flex;align-items:center;justify-content:center;gap:8px;font-size:.48em;letter-spacing:2px;color:#2a3050;transition:color .4s}
+.qa-st.thinking{color:var(--yellow)}.qa-st.talking{color:var(--cyan)}
+.qa-dot{width:7px;height:7px;border-radius:50%;background:#1a1a30;transition:background .4s}
+.qa-st.thinking .qa-dot{background:var(--yellow);animation:blink .5s infinite}
+.qa-st.talking .qa-dot{background:var(--cyan);animation:blink .3s infinite;box-shadow:0 0 8px rgba(0,212,255,.8)}
+.wbars{display:none;align-items:flex-end;gap:3px;height:14px}
+.wbars.active{display:flex}
+.wb{width:3px;background:var(--cyan);border-radius:2px;animation:wav .6s ease-in-out infinite alternate}
+.wb:nth-child(1){animation-delay:0s}.wb:nth-child(2){animation-delay:.1s}.wb:nth-child(3){animation-delay:.2s}.wb:nth-child(4){animation-delay:.1s}.wb:nth-child(5){animation-delay:0s}
+.qa-right{display:flex;flex-direction:column;justify-content:center;padding:32px 40px 32px 16px;gap:14px}
+.qa-rtag{font-size:.45em;letter-spacing:4px;color:rgba(0,212,255,.4);text-transform:uppercase;margin-bottom:4px}
+.qa-rh{font-size:1.1em!important;margin-bottom:4px}
+.qa-ih{color:#252845;font-size:.65em;line-height:2.4;border:1px dashed rgba(124,111,255,.15);border-radius:12px;padding:24px;letter-spacing:.5px;text-align:center}
+.qa-ih code{background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.2);padding:2px 10px;border-radius:5px;font-family:monospace;color:rgba(0,212,255,.65)}
+.qa-qb{background:rgba(251,191,36,.04);border:1px solid rgba(251,191,36,.2);border-left:3px solid var(--yellow);border-radius:10px;padding:14px 18px;display:none}
+.qa-qb.v{display:block}
+.qa-ql{font-size:.45em;letter-spacing:2px;color:var(--yellow);margin-bottom:6px;opacity:.8}
+.qa-qt{font-size:.72em;color:var(--txt);line-height:1.8}
+.qa-ab{background:rgba(124,111,255,.05);border:1px solid rgba(124,111,255,.2);border-left:3px solid var(--purple);border-radius:10px;padding:14px 18px;display:none}
+.qa-ab.v{display:block}
+.qa-al{font-size:.45em;letter-spacing:2px;color:var(--purple);margin-bottom:6px;opacity:.8}
+.qa-at{font-size:.72em;color:var(--txt);line-height:2}
+
+/* ── SLIDE 12: ターミナル ── */
+.term-slide{position:relative;width:100%;height:100vh;padding:24px 32px;display:flex;flex-direction:column;overflow:hidden}
+.term-bg{position:absolute;inset:0;background-image:url('img/ai_circuit.jpg');background-size:cover;opacity:.4}
+.term-ov{position:absolute;inset:0;background:rgba(8,12,26,.72)}
+.term-hd{position:relative;z-index:10;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.term-title{font-size:.9em;font-weight:700}
+.lb{font-size:.45em;letter-spacing:3px;color:var(--green);border:1px solid rgba(0,255,170,.3);padding:4px 14px;border-radius:20px;background:rgba(0,255,170,.06);animation:blk2 2s infinite}
+#tc{position:relative;z-index:10;flex:1;background:#0d1117;border-radius:14px;border:1px solid rgba(0,212,255,.18);overflow:hidden;box-shadow:0 0 30px rgba(0,212,255,.07)}
+.thd{background:#161b22;padding:10px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(255,255,255,.05);font-size:.48em;color:#4a5568;letter-spacing:1px}
+.tdd{width:12px;height:12px;border-radius:50%}
+.tdd-r{background:#ff5f57}.tdd-y{background:#ffbd2e}.tdd-g{background:#28c840}
+.tp{margin-left:8px;color:var(--cyan);opacity:.6}.tml{margin-left:auto}
+
+@keyframes breathe{0%,100%{transform:scale(1);opacity:.5}50%{transform:scale(1.06);opacity:1}}
+@keyframes pf{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+@keyframes pt{from{transform:scale(1);opacity:.8}to{transform:scale(1.08);opacity:1}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.1}}
+@keyframes blk2{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes wav{from{height:3px;opacity:.4}to{height:14px;opacity:1}}
+</style>
+</head>
+<body style="background:#080c1a">
+<canvas id="pcv"></canvas>
+<div class="reveal"><div class="slides">
+
+<!-- ══ 0: タイトル ══ -->
+<section>
+<div class="slide" style="flex-direction:column;align-items:center;justify-content:center">
+  <div class="bg-img s0-bg"></div><div class="bg-ov s0-ov"></div>
+  <div class="s0-body">
+    <div class="s0-tag">CRRA Sci-CON &nbsp;·&nbsp; 2026.04.24</div>
+    <h1 class="s0-h">AI、<br>使いこなせてる？</h1>
+    <p class="s0-sub">最新AI動向 × Claude Code × アイリスお披露目</p>
+    <div class="chips">
+      <span class="chip cc">AI勢力図 2026</span>
+      <span class="chip cp">Claude Code とは</span>
+      <span class="chip cg">ライブデモ</span>
+    </div>
+    <p class="s0-pres">presented by &nbsp;<span class="nc" style="-webkit-text-fill-color:var(--cyan)">村木 風海</span>&nbsp; · CRRA 代表取締役機構長</p>
+  </div>
+</div>
+</section>
+
+<!-- ══ 1: アジェンダ ══ -->
+<section>
+<div class="slide">
+  <div class="bg-img s1-bg"></div><div class="bg-ov s1-ov"></div>
+  <div class="agenda-body">
+    <div class="agenda-left">
+      <div class="agenda-label">Today's Agenda</div>
+      <h2 class="agenda-h nc">今日<br>やること</h2>
+      <p class="agenda-sub">30分で「AIを使いこなす人」になる。<br><br>文系でも理系でも関係ない。<br>道具を知れば誰でも使える。</p>
+    </div>
+    <div class="agenda-right">
+      <div class="ag-item"><div class="ag-num">01</div><div class="ag-title">AI勢力図 2026 — 4強の違いを把握する</div><div class="ag-time">8 min</div></div>
+      <div class="ag-item"><div class="ag-num">02</div><div class="ag-title">各AIの得意技 — ChatGPT / Gemini / Manus / Claude</div><div class="ag-time">10 min</div></div>
+      <div class="ag-item"><div class="ag-num">03</div><div class="ag-title">プロンプト3原則 — 結果が変わる書き方</div><div class="ag-time">5 min</div></div>
+      <div class="ag-item"><div class="ag-num">04</div><div class="ag-title">Claude Code とは — AIが「手を動かす」時代</div><div class="ag-time">5 min</div></div>
+      <div class="ag-item" style="border-color:rgba(124,111,255,.4);background:rgba(124,111,255,.08)"><div class="ag-num" style="color:var(--purple)">05</div><div class="ag-title" style="color:var(--purple)">アイリス お披露目 Q&amp;A ライブデモ</div><div class="ag-time">2 min</div></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ══ 2: AI勢力図 ══ -->
+<section>
+<div class="slide">
+  <div class="bg-img" style="background-image:url('img/ai_circuit.jpg');opacity:.52"></div>
+  <div class="bg-ov" style="background:linear-gradient(to right,rgba(8,12,26,.96) 48%,rgba(8,12,26,.35))"></div>
+  <div class="map-body">
+    <div class="map-left">
+      <div class="agenda-label">AI 勢力図 2026</div>
+      <h2 class="map-h nc">どのAIを<br>何に使う？</h2>
+      <p class="map-sub">みんなGPTかGeminiで<br>止まってない？<br><br>AIごとに<br>得意なことが<br>全然違う。</p>
+    </div>
+    <div class="map-right">
+      <div class="aicard">
+        <div class="aicard-em">🟢</div>
+        <div class="aicard-name" style="color:#34d399">ChatGPT</div>
+        <div class="aicard-maker">OpenAI · 世界シェアNo.1</div>
+        <div class="bar-row"><div class="bar-label"><span>日常会話・汎用</span><span style="color:#34d399">92%</span></div><div class="bar-track"><div class="bar-fill bg" style="width:92%"></div></div></div>
+        <div class="bar-row"><div class="bar-label"><span>画像生成</span><span>88%</span></div><div class="bar-track"><div class="bar-fill bg" style="width:88%"></div></div></div>
+        <div class="aicard-tags"><span class="tag tg">✓ まず試すならこれ</span></div>
+      </div>
+      <div class="aicard">
+        <div class="aicard-em">🔵</div>
+        <div class="aicard-name" style="color:#60a5fa">Gemini</div>
+        <div class="aicard-maker">Google · 検索連携AI</div>
+        <div class="bar-row"><div class="bar-label"><span>リアルタイム検索</span><span style="color:#60a5fa">95%</span></div><div class="bar-track"><div class="bar-fill bc" style="width:95%"></div></div></div>
+        <div class="bar-row"><div class="bar-label"><span>Google連携</span><span>90%</span></div><div class="bar-track"><div class="bar-fill bc" style="width:90%"></div></div></div>
+        <div class="aicard-tags"><span class="tag tg">✓ 情報収集に最強</span></div>
+      </div>
+      <div class="aicard">
+        <div class="aicard-em">🤖</div>
+        <div class="aicard-name" style="color:#fb923c">Manus</div>
+        <div class="aicard-maker">Monica AI · 完全自律エージェント</div>
+        <div class="bar-row"><div class="bar-label"><span>ブラウザ自律操作</span><span style="color:#fb923c">88%</span></div><div class="bar-track"><div class="bar-fill bo" style="width:88%"></div></div></div>
+        <div class="bar-row"><div class="bar-label"><span>複数ステップ実行</span><span>75%</span></div><div class="bar-track"><div class="bar-fill bo" style="width:75%"></div></div></div>
+        <div class="aicard-tags"><span class="tag tg">✓ 繰り返し作業を丸投げ</span><span class="tag tr">✗ まだ不安定</span></div>
+      </div>
+      <div class="aicard winner">
+        <div class="winner-badge">★ CRRAおすすめ</div>
+        <div class="aicard-em">🟣</div>
+        <div class="aicard-name np" style="-webkit-text-fill-color:var(--purple)">Claude</div>
+        <div class="aicard-maker">Anthropic · 知性と安全のトップ</div>
+        <div class="bar-row"><div class="bar-label"><span>コーディング・開発</span><span style="color:var(--purple)">98%</span></div><div class="bar-track"><div class="bar-fill bp" style="width:98%"></div></div></div>
+        <div class="bar-row"><div class="bar-label"><span>長文読解・深い推論</span><span>96%</span></div><div class="bar-track"><div class="bar-fill bp" style="width:96%"></div></div></div>
+        <div class="aicard-tags"><span class="tag tg">✓ 研究・開発・事務に最強</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ══ 3: ChatGPT ══ -->
+<section>
+<div class="detail-slide">
+  <div class="detail-bg" style="background-image:url('img/robot.jpg');opacity:.6"></div>
+  <div class="detail-ov" style="background:linear-gradient(to right,rgba(8,12,26,.97) 38%,rgba(8,12,26,.28))"></div>
+  <div class="detail-body">
+    <div class="detail-left">
+      <div class="hero-card" style="border-color:rgba(52,211,153,.3)">
+        <span class="hero-em">🟢</span>
+        <div class="hero-name" style="color:#34d399">ChatGPT</div>
+        <div class="hero-sub">OpenAI<br>世界3億人が使う<br>最もポピュラーなAI</div>
+      </div>
+      <div class="scores">
+        <div class="sc-row"><div class="sc-label"><span>日常会話・汎用</span><span style="color:#34d399">★★★★★</span></div><div class="sc-bar"><div class="sc-fill bg" style="width:95%"></div></div></div>
+        <div class="sc-row"><div class="sc-label"><span>画像生成（DALL·E）</span><span style="color:#34d399">★★★★★</span></div><div class="sc-bar"><div class="sc-fill bg" style="width:92%"></div></div></div>
+        <div class="sc-row"><div class="sc-label"><span>コーディング</span><span style="color:#34d399">★★★</span></div><div class="sc-bar"><div class="sc-fill bg" style="width:65%"></div></div></div>
+      </div>
+    </div>
+    <div class="detail-right">
+      <div class="uc hl"><div class="uc-icon">✉️</div><div class="uc-title">メール・文章を30秒で</div><div class="uc-ex">「笹原社長へ今週の会議欠席連絡を書いて」→ そのまま送れる文章が即完成</div></div>
+      <div class="uc hl"><div class="uc-icon">🎨</div><div class="uc-title">言葉でイラスト生成</div><div class="uc-ex">「CO2回収の仕組みを図解で」→ プレゼン用ビジュアルを自動生成</div></div>
+      <div class="uc"><div class="uc-icon">🌐</div><div class="uc-title">英語論文・特許を翻訳</div><div class="uc-ex">「この特許明細書を日本語で要約して」→ 10秒で完了</div></div>
+      <div class="uc"><div class="uc-icon">💡</div><div class="uc-title">アイデア出しが爆速</div><div class="uc-ex">「CRRA新規事業アイデアを10個出して」→ 即座にブレスト</div></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ══ 4: Gemini ══ -->
+<section>
+<div class="detail-slide">
+  <div class="detail-bg" style="background-image:url('img/ai_circuit.jpg');opacity:.6"></div>
+  <div class="detail-ov" style="background:linear-gradient(to right,rgba(8,12,26,.97) 38%,rgba(8,12,26,.28))"></div>
+  <div class="detail-body">
+    <div class="detail-left">
+      <div class="hero-card" style="border-color:rgba(96,165,250,.3)">
+        <span class="hero-em">🔵</span>
+        <div class="hero-name" style="color:#60a5fa">Gemini</div>
+        <div class="hero-sub">Google<br>検索と融合した<br>情報収集AIの決定版</div>
+      </div>
+      <div class="scores">
+        <div class="sc-row"><div class="sc-label"><span>リアルタイム検索</span><span style="color:#60a5fa">★★★★★</span></div><div class="sc-bar"><div class="sc-fill bc" style="width:96%"></div></div></div>
+        <div class="sc-row"><div class="sc-label"><span>Google Workspace連携</span><span style="color:#60a5fa">★★★★★</span></div><div class="sc-bar"><div class="sc-fill bc" style="width:93%"></div></div></div>
+        <div class="sc-row"><div class="sc-label"><span>動画・音声理解</span><span style="color:#60a5fa">★★★★</span></div><div class="sc-bar"><div class="sc-fill bc" style="width:80%"></div></div></div>
+      </div>
+    </div>
+    <div class="detail-right">
+      <div class="uc hl"><div class="uc-icon">🔍</div><div class="uc-title">今日のニュースを検索して回答</div><div class="uc-ex">「今週のDAC業界ニュースをまとめて」→ リアルタイムWeb検索込みで回答</div></div>
+      <div class="uc hl"><div class="uc-icon">📹</div><div class="uc-title">YouTube動画をURLで要約</div><div class="uc-ex">URLを貼るだけ→ 1時間の講演が5分で把握できる</div></div>
+      <div class="uc"><div class="uc-icon">📊</div><div class="uc-title">Googleスプレッドシート分析</div><div class="uc-ex">「この実験データの傾向を分析して」→ グラフ提案・予測まで自動</div></div>
+      <div class="uc"><div class="uc-icon">📑</div><div class="uc-title">競合・市場リサーチ</div><div class="uc-ex">「欧州のCO2回収スタートアップを調査」→ Web横断でレポート化</div></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ══ 5: Manus ══ -->
+<section>
+<div class="detail-slide">
+  <div class="detail-bg" style="background-image:url('img/robot_bg.jpg');opacity:.58"></div>
+  <div class="detail-ov" style="background:linear-gradient(to right,rgba(8,12,26,.97) 38%,rgba(8,12,26,.28))"></div>
+  <div class="detail-body">
+    <div class="detail-left">
+      <div class="hero-card" style="border-color:rgba(251,146,60,.3)">
+        <span class="hero-em">🤖</span>
+        <div class="hero-name" style="color:#fb923c">Manus</div>
+        <div class="hero-sub">Monica AI<br>「やっといて」が<br>本当に通じるAI</div>
+      </div>
+      <div class="scores">
+        <div class="sc-row"><div class="sc-label"><span>自律ブラウザ操作</span><span style="color:#fb923c">★★★★★</span></div><div class="sc-bar"><div class="sc-fill bo" style="width:90%"></div></div></div>
+        <div class="sc-row"><div class="sc-label"><span>複数ステップ実行</span><span style="color:#fb923c">★★★★</span></div><div class="sc-bar"><div class="sc-fill bo" style="width:82%"></div></div></div>
+        <div class="sc-row"><div class="sc-label"><span>安定性・精度</span><span style="color:#fb923c">★★★</span></div><div class="sc-bar"><div class="sc-fill bo" style="width:60%"></div></div></div>
+      </div>
+    </div>
+    <div class="detail-right">
+      <div class="uc hl"><div class="uc-icon">🖥️</div><div class="uc-title">ブラウザ操作を丸ごと自動化</div><div class="uc-ex">「100社のサイトからメアドを抽出して」→ 自動でブラウジングして完結</div></div>
+      <div class="uc hl"><div class="uc-icon">📋</div><div class="uc-title">調べてまとめてを一気通貫</div><div class="uc-ex">「炭素税の動向を調べてPPTにまとめて」→ 検索→整理→スライド作成まで</div></div>
+      <div class="uc"><div class="uc-icon">🔄</div><div class="uc-title">定型作業を完全自動化</div><div class="uc-ex">「毎週CO2価格データを収集してSlackに送信」→ 繰り返し作業をManusに任せる</div></div>
+      <div class="uc"><div class="uc-icon">⚠️</div><div class="uc-title">注意：最終確認は必ず自分で</div><div class="uc-ex">重要な作業には人間のチェックを。途中で止まることも →補助ツールとして使う</div></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ══ 6: Claude ══ -->
+<section>
+<div class="detail-slide">
+  <div class="detail-bg" style="background-image:url('img/ai_glow.jpg');opacity:.62"></div>
+  <div class="detail-ov" style="background:linear-gradient(to right,rgba(8,12,26,.97) 38%,rgba(8,12,26,.25))"></div>
+  <div class="detail-body">
+    <div class="detail-left">
+      <div class="hero-card" style="border-color:rgba(124,111,255,.4);background:linear-gradient(160deg,rgba(124,111,255,.14),rgba(0,212,255,.05))">
+        <span class="hero-em">🟣</span>
+        <div class="hero-name np" style="-webkit-text-fill-color:var(--purple)">Claude</div>
+        <div class="hero-sub">Anthropic<br>CRRAが選んだ<br>最強のAI</div>
+      </div>
+      <div class="scores">
+        <div class="sc-row"><div class="sc-label"><span>コーディング</span><span style="color:var(--purple)">★★★★★</span></div><div class="sc-bar"><div class="sc-fill bp" style="width:98%"></div></div></div>
+        <div class="sc-row"><div class="sc-label"><span>長文読解・分析</span><span style="color:var(--purple)">★★★★★</span></div><div class="sc-bar"><div class="sc-fill bp" style="width:96%"></div></div></div>
+        <div class="sc-row"><div class="sc-label"><span>指示への忠実さ</span><span style="color:var(--purple)">★★★★★</span></div><div class="sc-bar"><div class="sc-fill bp" style="width:97%"></div></div></div>
+      </div>
+    </div>
+    <div class="detail-right">
+      <div class="uc hl"><div class="uc-icon">📄</div><div class="uc-title">100ページの書類を1分で読む</div><div class="uc-ex">「この特許で注意すべき点を教えて」→ 重要箇所の抜き出し・リスク指摘まで</div></div>
+      <div class="uc hl"><div class="uc-icon">💻</div><div class="uc-title">コードを書いて・直して・説明</div><div class="uc-ex">「実験データのCSVをグラフ化するPythonを書いて」→ 動くコードを即生成</div></div>
+      <div class="uc"><div class="uc-icon">🔬</div><div class="uc-title">研究・実験の補助</div><div class="uc-ex">「DAC実験の条件設計を手伝って」→ プロトコル設計・先行研究整理まで</div></div>
+      <div class="uc"><div class="uc-icon">📝</div><div class="uc-title">メモ→論理的な報告書へ</div><div class="uc-ex">「この箇条書きから補助金申請書を書いて」→ 行政向け長文レポートを即生成</div></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ══ 7: プロンプト3原則 ══ -->
+<section>
+<div class="slide">
+  <div class="bg-img" style="background-image:url('img/ai_glow.jpg');opacity:.48"></div>
+  <div class="bg-ov" style="background:linear-gradient(to right,rgba(8,12,26,.97) 42%,rgba(8,12,26,.4))"></div>
+  <div class="prompt-body">
+    <div class="prompt-left">
+      <div class="agenda-label">Prompt Engineering</div>
+      <h2 class="prompt-h nc">結果が変わる<br>3つの<br>書き方</h2>
+      <p class="prompt-sub">AIへの指示の質が<br>答えの質を決める。<br><br>この3つを守るだけで<br>精度が劇的に上がる。</p>
+    </div>
+    <div class="prompt-right">
+      <div class="pr-card">
+        <div class="pr-num" style="background:rgba(0,212,255,.15);color:var(--cyan)">①</div>
+        <div class="pr-content">
+          <div class="pr-title" style="color:var(--cyan)">役割を与える</div>
+          <div class="pr-bad">✗「補助金申請書を書いて」</div>
+          <div class="pr-good">✓「あなたは行政書士です。CO2回収事業の補助金申請書を書いて」</div>
+        </div>
+      </div>
+      <div class="pr-card">
+        <div class="pr-num" style="background:rgba(124,111,255,.15);color:var(--purple)">②</div>
+        <div class="pr-content">
+          <div class="pr-title" style="color:var(--purple)">具体的な条件を入れる</div>
+          <div class="pr-bad">✗「メールを書いて」</div>
+          <div class="pr-good">✓「笹原社長へ、今週木曜の会議を欠席する旨を、200字以内で書いて」</div>
+        </div>
+      </div>
+      <div class="pr-card">
+        <div class="pr-num" style="background:rgba(0,255,170,.15);color:var(--green)">③</div>
+        <div class="pr-content">
+          <div class="pr-title" style="color:var(--green)">出力形式を指定する</div>
+          <div class="pr-bad">✗「DAC技術を説明して」</div>
+          <div class="pr-good">✓「DAC技術を、小学生にもわかるように、3行で説明して」</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ══ 8: AI選択フロー ══ -->
+<section>
+<div class="slide" style="flex-direction:column">
+  <div class="bg-img" style="background-image:url('img/ai_circuit.jpg');opacity:.45"></div>
+  <div class="bg-ov" style="background:rgba(8,12,26,.72)"></div>
+  <div class="flow-body">
+    <h2 class="flow-h nc">やりたいこと → 使うAIを決める</h2>
+    <div class="flow-grid">
+      <div class="flow-card">
+        <div class="flow-q">文章を書きたい<br>アイデアが欲しい<br>画像を作りたい</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-ai">🟢</div>
+        <div class="flow-name" style="color:#34d399">ChatGPT</div>
+        <div class="flow-why">なんでもこなせる<br>万能型の相棒</div>
+      </div>
+      <div class="flow-card">
+        <div class="flow-q">最新情報が欲しい<br>Googleで調べたい<br>動画を要約したい</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-ai">🔵</div>
+        <div class="flow-name" style="color:#60a5fa">Gemini</div>
+        <div class="flow-why">リアルタイム検索<br>Google連携最強</div>
+      </div>
+      <div class="flow-card">
+        <div class="flow-q">面倒な繰り返し作業<br>ブラウザ操作を<br>自動化したい</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-ai">🤖</div>
+        <div class="flow-name" style="color:#fb923c">Manus</div>
+        <div class="flow-why">自律型エージェント<br>丸投げ特化</div>
+      </div>
+      <div class="flow-card" style="border-color:rgba(124,111,255,.4);background:rgba(124,111,255,.08)">
+        <div class="flow-q">書類・特許を読む<br>コードを書く<br>深く考えたい</div>
+        <div class="flow-arrow" style="color:var(--purple)">↓</div>
+        <div class="flow-ai">🟣</div>
+        <div class="flow-name np" style="-webkit-text-fill-color:var(--purple)">Claude</div>
+        <div class="flow-why" style="color:var(--purple);opacity:.8">CRRAおすすめ<br>知性と精度で圧倒</div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ══ 9: Claude vs Claude Code ══ -->
+<section>
+<div class="vs-slide">
+  <div class="vs-bg"></div><div class="vs-ov"></div>
+  <div class="vs-body">
+    <div class="vs-hd">
+      <div class="vs-hl">Claude Code とは</div>
+      <h2 class="vs-h nc">Claude と Claude Code、何が違う？</h2>
+      <p class="vs-sub">同じAIなのに、できることが天と地ほど違う。</p>
+    </div>
+    <div class="vs-wrap">
+      <div class="vc">
+        <h3>🌐 Claude（ブラウザ）</h3>
+        <div class="vr"><div class="vi ok">💬</div><div class="vt b">質問に答える・文章を書く</div></div>
+        <div class="vr"><div class="vi ok">🖼️</div><div class="vt b">画像を読む・翻訳する</div></div>
+        <div class="vr"><div class="vi no">✗</div><div class="vt">ファイルに触れない</div></div>
+        <div class="vr"><div class="vi no">✗</div><div class="vt">PCを操作できない</div></div>
+        <div class="vr"><div class="vi no">✗</div><div class="vt">毎回リセット・記憶なし</div></div>
+        <p style="font-size:.6em;margin-top:14px;color:var(--txt2)">＝ 賢い相談相手</p>
+      </div>
+      <div class="varrow">→</div>
+      <div class="vc win">
+        <h3 style="color:var(--purple)">⚡ Claude Code（ターミナル）</h3>
+        <div class="vr"><div class="vi ok">📁</div><div class="vt b">ファイルを読む・書く・実行する</div></div>
+        <div class="vr"><div class="vi ok">💻</div><div class="vt b">コードを書いて実際に動かす</div></div>
+        <div class="vr"><div class="vi ok">🔗</div><div class="vt b">Slack・メール・カレンダーを操作</div></div>
+        <div class="vr"><div class="vi ok">🧠</div><div class="vt b">記憶を持ち24時間稼働</div></div>
+        <div class="vr"><div class="vi ok">🌸</div><div class="vt b">それが——アイリスです</div></div>
+        <p style="font-size:.6em;margin-top:14px;color:var(--purple)">＝ 実際に手を動かすAI</p>
+      </div>
+    </div>
+    <div class="vbot">
+      「やって」と頼む のが Claude &nbsp;·&nbsp; 実際に「<span class="nc" style="-webkit-text-fill-color:var(--cyan)">やってくれる</span>」のが <span style="color:var(--purple)">Claude Code</span>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ══ 10: アイリス紹介 ══ -->
+<section>
+<div class="intro-slide">
+  <div class="intro-bg"></div><div class="intro-ov"></div>
+  <div class="intro-body">
+    <div class="intro-left">
+      <div class="intro-tag">CRRA AI Research Officer</div>
+      <h2 class="intro-h np" style="-webkit-text-fill-color:var(--purple)">アイリス<br>とは？</h2>
+      <p class="intro-pos">主任研究員 · 次席機構長補佐</p>
+      <p style="font-size:.6em;color:var(--txt2);line-height:1.9">Claude Codeをベースに<br>CRRAのために特化した<br>専属AIリサーチオフィサー。<br><br>村木機構長の直属の部下として<br>24時間稼働中。</p>
+    </div>
+    <div class="intro-right">
+      <div class="ic"><div class="ic-em">🧠</div><div class="ic-title">記憶を持つ</div><div class="ic-body">かずみ先生との会話・CRRA組織情報・各研究員の状況を記憶して継続的に働く</div></div>
+      <div class="ic"><div class="ic-em">📱</div><div class="ic-title">Slackで即応答</div><div class="ic-body">@アイリス でメンションするだけ。スケジュール調整・資料作成・調査を24時間受け付け</div></div>
+      <div class="ic"><div class="ic-em">💻</div><div class="ic-title">コードも書ける</div><div class="ic-body">実験データ解析・スクリプト作成・API連携など、実際に動くコードを生成して実行まで</div></div>
+      <div class="ic"><div class="ic-em">🌍</div><div class="ic-title">使命を共有</div><div class="ic-body">「地球を守り、火星を拓く」——ただのツールではなくCRRAの仲間として使命を持って働く</div></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ══ 11: Q&A ══ -->
+<section data-iris-qa="true">
+<div class="qa-slide">
+  <div class="qa-bg"></div><div class="qa-ov"></div>
+  <div class="qa-body">
+    <div class="qa-left">
+      <div class="qa-aw">
+        <div class="qa-glow" id="qaGlow"></div>
+        <video id="irisVideo" autoplay playsinline muted></video>
+        <canvas id="irisCanvas" width="300" height="373"></canvas>
+      </div>
+      <div class="qa-np">
+        <div class="qa-name">アイリス</div>
+        <div class="qa-rank">主任研究員 · 次席機構長補佐</div>
+      </div>
+      <div class="qa-st idle" id="qaStatus">
+        <div class="qa-dot"></div>
+        <span id="qaStatusText">STANDBY</span>
+        <div class="wbars" id="waveBars">
+          <div class="wb"></div><div class="wb"></div><div class="wb"></div><div class="wb"></div><div class="wb"></div>
+        </div>
+      </div>
+    </div>
+    <div class="qa-right">
+      <div class="qa-rtag">CRRA AI Research Officer — Live Q&amp;A</div>
+      <h2 class="qa-rh nc">アイリスに<br>質問してみて</h2>
+      <div class="qa-ih" id="qaIdleHint">
+        Slack の <code>#107____sci-con</code> で<br><br>
+        <code>@アイリス ○○を教えて！</code><br><br>
+        と送ってください
+      </div>
+      <div class="qa-qb" id="qaQbox"><div class="qa-ql" id="qaAsker">QUESTION</div><div class="qa-qt" id="qaQtext"></div></div>
+      <div class="qa-ab" id="qaAbox"><div class="qa-al">IRIS</div><div class="qa-at" id="qaAtext"></div></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ══ 12: ライブデモ ══ -->
+<section data-iris-terminal="true">
+<div class="term-slide">
+  <div class="term-bg"></div><div class="term-ov"></div>
+  <div class="term-hd">
+    <span class="term-title">ライブデモ — <span class="nc" style="-webkit-text-fill-color:var(--cyan)">Claude Code</span> 実演</span>
+    <span class="lb">● LIVE</span>
+  </div>
+  <div id="tc">
+    <div class="thd">
+      <span class="tdd tdd-r"></span><span class="tdd tdd-y"></span><span class="tdd tdd-g"></span>
+      <span class="tp">~/crra</span><span class="tml">iris@crra-macbook — zsh</span>
+    </div>
+    <div id="xterm-el" style="height:calc(100% - 42px);padding:4px 8px"></div>
+  </div>
+</div>
+</section>
+
+</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/plugin/highlight/highlight.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
+<script>
+// パーティクル
+(()=>{
+  const c=document.getElementById("pcv"),ctx=c.getContext("2d");
+  let W,H,pts=[];const r=()=>{W=c.width=innerWidth;H=c.height=innerHeight};r();addEventListener("resize",r);
+  for(let i=0;i<40;i++)pts.push({x:Math.random()*2000,y:Math.random()*1000,r:Math.random()*1.4+.3,sp:Math.random()*.3+.1,op:Math.random()*.28+.06,col:Math.random()<.6?"rgba(0,212,255,":"rgba(124,111,255,"});
+  const draw=()=>{ctx.clearRect(0,0,W,H);pts.forEach(p=>{p.y-=p.sp;if(p.y<-10){p.y=H+10;p.x=Math.random()*W}ctx.beginPath();ctx.arc(p.x%W,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.col+p.op+")";ctx.fill()});requestAnimationFrame(draw)};draw();
+})();
+
+Reveal.initialize({hash:true,transition:'fade',transitionSpeed:'fast',controls:true,progress:true,slideNumber:true,plugins:[RevealHighlight],width:1920,height:1080,margin:0,minScale:0.5,maxScale:1.0});
+
+// Canvas（アイリス写真）
+const irisImg=new Image();irisImg.src="iris.png";
+const canvas=document.getElementById("irisCanvas");
+const ctx2=canvas&&canvas.getContext("2d");
+function drawIris(){
+  if(!canvas||!ctx2||!irisImg.complete)return;
+  ctx2.clearRect(0,0,canvas.width,canvas.height);
+  const r=20;ctx2.save();
+  ctx2.beginPath();ctx2.moveTo(r,0);ctx2.lineTo(canvas.width-r,0);ctx2.quadraticCurveTo(canvas.width,0,canvas.width,r);ctx2.lineTo(canvas.width,canvas.height-r);ctx2.quadraticCurveTo(canvas.width,canvas.height,canvas.width-r,canvas.height);ctx2.lineTo(r,canvas.height);ctx2.quadraticCurveTo(0,canvas.height,0,canvas.height-r);ctx2.lineTo(0,r);ctx2.quadraticCurveTo(0,0,r,0);ctx2.closePath();ctx2.clip();
+  ctx2.drawImage(irisImg,0,0,canvas.width,canvas.height);
+  ctx2.restore();
+}
+irisImg.onload=drawIris;
+
+// Q&A ステータス
+let lastSt="idle";
+function setQaSt(s){
+  const g=id=>document.getElementById(id);
+  const rm=(el,...cls)=>cls.forEach(c=>el&&el.classList.remove(c));
+  const ad=(el,c)=>el&&c&&el.classList.add(c);
+  rm(g("qaGlow"),"thinking","talking");ad(g("qaGlow"),s!=="idle"?s:null);
+  rm(g("irisCanvas"),"thinking","talking");ad(g("irisCanvas"),s!=="idle"?s:null);
+  rm(g("qaStatus"),"thinking","talking","idle");ad(g("qaStatus"),s);
+  rm(g("waveBars"),"active");ad(g("waveBars"),s==="talking"?"active":null);
+  const t=g("qaStatusText");if(t)t.textContent={idle:"STANDBY",thinking:"THINKING...",talking:"SPEAKING"}[s]||"STANDBY";
+}
+
+// Q&A ポーリング
+let _lastVideo=false;
+async function qaPoll(){
+  try{
+    const d=await(await fetch("/status")).json();
+    if(d.status!==lastSt){lastSt=d.status;setQaSt(d.status)}
+    const g=id=>document.getElementById(id);
+    const show=(id,v)=>{const e=g(id);if(!e)return;e.style.display=v?"":"none";e.classList[v?"add":"remove"]("v")};
+    const set=(id,v)=>{const e=g(id);if(e)e.textContent=v};
+    if(d.question){
+      show("qaIdleHint",false);show("qaQbox",true);
+      set("qaAsker",d.asker?`${d.asker} より`:"QUESTION");set("qaQtext",d.question);
+      show("qaAbox",!!d.answer);if(d.answer)set("qaAtext",d.answer);
+    } else {
+      show("qaIdleHint",true);show("qaQbox",false);show("qaAbox",false);
+    }
+    // D-ID ビデオ切り替え
+    if(d.video&&!_lastVideo){
+      const vid=g("irisVideo");const cvs=g("irisCanvas");
+      if(vid&&cvs){vid.src="/iris_video?t="+Date.now();vid.classList.add("active");cvs.style.display="none";vid.play().catch(()=>{});}
+    } else if(!d.video&&_lastVideo){
+      const vid=g("irisVideo");const cvs=g("irisCanvas");
+      if(vid&&cvs){vid.classList.remove("active");vid.src="";cvs.style.display="";}
+    }
+    _lastVideo=!!d.video;
+  }catch(e){}
+}
+setInterval(qaPoll,1000);qaPoll();
+
+// ターミナル
+let termDone=false;
+Reveal.on("slidechanged",e=>{if(e.currentSlide.dataset.irisTerminal&&!termDone){termDone=true;initTerm()}});
+function initTerm(){
+  const term=new Terminal({cursorBlink:true,fontSize:15,fontFamily:"'SF Mono','Fira Code',monospace",theme:{background:"#0d1117",foreground:"#c9d1d9",cursor:"#00d4ff",selectionBackground:"rgba(0,212,255,.25)"},scrollback:2000});
+  const fit=new FitAddon.FitAddon();term.loadAddon(fit);term.open(document.getElementById("xterm-el"));fit.fit();
+  const ws=new WebSocket(`ws://${location.host}/terminal`);ws.binaryType="arraybuffer";
+  ws.onopen=()=>term.write("\r\n  \x1b[36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\x1b[0m\r\n  \x1b[35m  アイリス — CRRA 主任研究員 · 次席機構長補佐\x1b[0m\r\n  \x1b[36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\x1b[0m\r\n\r\n");
+  ws.onmessage=e=>term.write(typeof e.data==="string"?e.data:new TextDecoder().decode(e.data));
+  ws.onclose=()=>term.write("\r\n\x1b[31m[接続終了]\x1b[0m\r\n");
+  ws.onerror=()=>term.write("\r\n\x1b[31m[接続エラー]\x1b[0m\r\n");
+  term.onData(d=>ws.readyState===1&&ws.send(d));
+  window.addEventListener("resize",()=>fit.fit());
+}
+</script>
+</body>
+</html>

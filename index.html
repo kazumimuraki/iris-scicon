@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IRIS — CRRA AI Research Officer</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0a0a14;
+    font-family: 'Hiragino Sans', 'Yu Gothic', sans-serif;
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+  }
+
+  /* 背景パーティクル */
+  .bg-gradient {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 30%, #1a0a2e 0%, #0a0a14 60%);
+    z-index: 0;
+  }
+
+  /* メインコンテナ */
+  .container {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+    width: 100%;
+    max-width: 900px;
+    padding: 20px;
+  }
+
+  /* ヘッダー */
+  .header {
+    text-align: center;
+    opacity: 0.85;
+  }
+  .header .org {
+    font-size: 13px;
+    letter-spacing: 4px;
+    color: #a78bfa;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .header .title {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: #6d6d8a;
+  }
+
+  /* アイリス写真エリア */
+  .avatar-wrapper {
+    position: relative;
+    width: 300px;
+    height: 380px;
+  }
+
+  /* 外側グロー（状態で変化） */
+  .glow-ring {
+    position: absolute;
+    inset: -20px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%);
+    animation: breathe 4s ease-in-out infinite;
+    transition: background 0.5s;
+  }
+  .glow-ring.thinking {
+    background: radial-gradient(circle, rgba(251,191,36,0.25) 0%, transparent 70%);
+    animation: pulse-fast 0.8s ease-in-out infinite;
+  }
+  .glow-ring.talking {
+    background: radial-gradient(circle, rgba(139,92,246,0.45) 0%, transparent 65%);
+    animation: pulse-talk 0.4s ease-in-out infinite alternate;
+  }
+
+  .avatar-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+    border-radius: 20px;
+    border: 2px solid rgba(139,92,246,0.4);
+    transition: border-color 0.5s, box-shadow 0.5s;
+    box-shadow: 0 0 40px rgba(139,92,246,0.2);
+  }
+  .avatar-photo.thinking {
+    border-color: rgba(251,191,36,0.7);
+    box-shadow: 0 0 60px rgba(251,191,36,0.3);
+  }
+  .avatar-photo.talking {
+    border-color: rgba(139,92,246,0.9);
+    box-shadow: 0 0 80px rgba(139,92,246,0.5), 0 0 140px rgba(139,92,246,0.2);
+  }
+
+  /* 名前バッジ */
+  .name-badge {
+    position: absolute;
+    bottom: -16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #7c3aed, #5b21b6);
+    padding: 6px 24px;
+    border-radius: 20px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    white-space: nowrap;
+    box-shadow: 0 4px 20px rgba(124,58,237,0.5);
+  }
+  .name-badge .sub {
+    font-size: 10px;
+    letter-spacing: 1px;
+    opacity: 0.75;
+    display: block;
+    text-align: center;
+    font-weight: 400;
+    margin-top: 1px;
+  }
+
+  /* ステータスインジケーター */
+  .status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: #6d6d8a;
+    margin-top: 24px;
+    transition: color 0.5s;
+  }
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #4a4a6a;
+    transition: background 0.5s;
+  }
+  .status-indicator.thinking .status-dot {
+    background: #fbbf24;
+    animation: blink 0.5s ease-in-out infinite;
+  }
+  .status-indicator.thinking { color: #fbbf24; }
+  .status-indicator.talking .status-dot {
+    background: #a78bfa;
+    animation: blink 0.3s ease-in-out infinite;
+  }
+  .status-indicator.talking { color: #a78bfa; }
+  .status-indicator.idle { color: #4a4a6a; }
+
+  /* Q&Aエリア */
+  .qa-area {
+    width: 100%;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.6s, transform 0.6s;
+  }
+  .qa-area.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .question-box {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-left: 3px solid #fbbf24;
+    border-radius: 8px;
+    padding: 12px 16px;
+  }
+  .question-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: #fbbf24;
+    margin-bottom: 6px;
+  }
+  .question-text {
+    font-size: 16px;
+    color: #e5e7eb;
+    line-height: 1.6;
+  }
+
+  .answer-box {
+    background: rgba(139,92,246,0.08);
+    border: 1px solid rgba(139,92,246,0.2);
+    border-left: 3px solid #7c3aed;
+    border-radius: 8px;
+    padding: 12px 16px;
+  }
+  .answer-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: #a78bfa;
+    margin-bottom: 6px;
+  }
+  .answer-text {
+    font-size: 16px;
+    color: #e5e7eb;
+    line-height: 1.8;
+  }
+
+  /* 待機メッセージ */
+  .idle-msg {
+    text-align: center;
+    color: #3d3d5c;
+    font-size: 13px;
+    letter-spacing: 2px;
+    transition: opacity 0.5s;
+  }
+  .idle-msg .slack-hint {
+    margin-top: 8px;
+    font-size: 11px;
+    color: #2d2d44;
+  }
+  .idle-msg code {
+    background: rgba(255,255,255,0.05);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 12px;
+    color: #5a5a8a;
+  }
+
+  /* アニメーション定義 */
+  @keyframes breathe {
+    0%, 100% { transform: scale(1); opacity: 0.6; }
+    50% { transform: scale(1.05); opacity: 1; }
+  }
+  @keyframes pulse-fast {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.1); opacity: 1; }
+  }
+  @keyframes pulse-talk {
+    from { transform: scale(1); opacity: 0.8; }
+    to { transform: scale(1.08); opacity: 1; }
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+  }
+
+  /* 口パクオーバーレイ（talking時） */
+  .mouth-overlay {
+    position: absolute;
+    bottom: 28%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 28px;
+    height: 0px;
+    background: rgba(255,220,200,0.6);
+    border-radius: 50%;
+    transition: height 0.1s;
+    display: none;
+  }
+  .mouth-overlay.active {
+    display: block;
+    animation: mouth-move 0.22s ease-in-out infinite alternate;
+  }
+  @keyframes mouth-move {
+    from { height: 3px; width: 24px; }
+    to { height: 9px; width: 30px; }
+  }
+
+  /* 音声波形（talking時） */
+  .wave-bars {
+    display: none;
+    align-items: flex-end;
+    gap: 3px;
+    height: 24px;
+    margin-top: 4px;
+  }
+  .wave-bars.active { display: flex; }
+  .wave-bar {
+    width: 4px;
+    background: #7c3aed;
+    border-radius: 2px;
+    animation: wave-anim 0.6s ease-in-out infinite alternate;
+  }
+  .wave-bar:nth-child(1) { animation-delay: 0.0s; }
+  .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+  .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+  .wave-bar:nth-child(4) { animation-delay: 0.1s; }
+  .wave-bar:nth-child(5) { animation-delay: 0.0s; }
+  @keyframes wave-anim {
+    from { height: 4px; opacity: 0.5; }
+    to { height: 20px; opacity: 1; }
+  }
+
+  /* CRRA フッター */
+  .footer {
+    position: fixed;
+    bottom: 16px;
+    right: 20px;
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: #2a2a3a;
+    z-index: 10;
+  }
+</style>
+</head>
+<body>
+<div class="bg-gradient"></div>
+
+<div class="container">
+  <!-- ヘッダー -->
+  <div class="header">
+    <div class="org">CRRA — 炭素回収技術研究機構</div>
+    <div class="title">Sci-CON 2026 · AI Research Officer Presentation</div>
+  </div>
+
+  <!-- アバター -->
+  <div class="avatar-wrapper">
+    <div class="glow-ring" id="glowRing"></div>
+    <img src="iris.png" class="avatar-photo" id="avatarPhoto" alt="Iris">
+    <div class="mouth-overlay" id="mouthOverlay"></div>
+    <div class="name-badge">
+      アイリス
+      <span class="sub">主任研究員 · 次席機構長補佐</span>
+    </div>
+  </div>
+
+  <!-- ステータス -->
+  <div class="status-indicator idle" id="statusIndicator">
+    <div class="status-dot"></div>
+    <span id="statusText">STANDBY</span>
+    <div class="wave-bars" id="waveBars">
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+    </div>
+  </div>
+
+  <!-- Q&Aエリア -->
+  <div class="qa-area" id="qaArea">
+    <div class="question-box">
+      <div class="question-label">QUESTION</div>
+      <div class="question-text" id="questionText"></div>
+    </div>
+    <div class="answer-box">
+      <div class="answer-label">IRIS</div>
+      <div class="answer-text" id="answerText"></div>
+    </div>
+  </div>
+
+  <!-- 待機メッセージ -->
+  <div class="idle-msg" id="idleMsg">
+    質問はSlackの <code>#107____sci-con</code> で<br>
+    <code>@アイリス ○○について教えて</code> と送ってください
+    <div class="slack-hint">メッセージを検知次第、自動でお答えします</div>
+  </div>
+</div>
+
+<div class="footer">アイリス v2.0 · Powered by Claude · CRRA 2026</div>
+
+<script>
+let lastStatus = "idle";
+
+function setStatus(status) {
+  const glow = document.getElementById("glowRing");
+  const photo = document.getElementById("avatarPhoto");
+  const indicator = document.getElementById("statusIndicator");
+  const statusText = document.getElementById("statusText");
+  const mouth = document.getElementById("mouthOverlay");
+  const waves = document.getElementById("waveBars");
+
+  // クラスリセット
+  glow.className = "glow-ring";
+  photo.className = "avatar-photo";
+  indicator.className = "status-indicator";
+  mouth.className = "mouth-overlay";
+  waves.className = "wave-bars";
+
+  if (status === "thinking") {
+    glow.classList.add("thinking");
+    photo.classList.add("thinking");
+    indicator.classList.add("thinking");
+    statusText.textContent = "THINKING...";
+  } else if (status === "talking") {
+    glow.classList.add("talking");
+    photo.classList.add("talking");
+    indicator.classList.add("talking");
+    statusText.textContent = "SPEAKING";
+    mouth.classList.add("active");
+    waves.classList.add("active");
+  } else {
+    indicator.classList.add("idle");
+    statusText.textContent = "STANDBY";
+  }
+}
+
+async function poll() {
+  try {
+    const resp = await fetch("/status");
+    const data = await resp.json();
+
+    if (data.status !== lastStatus) {
+      lastStatus = data.status;
+      setStatus(data.status);
+    }
+
+    const qaArea = document.getElementById("qaArea");
+    const idleMsg = document.getElementById("idleMsg");
+    const questionText = document.getElementById("questionText");
+    const answerText = document.getElementById("answerText");
+
+    if (data.status === "idle" && !data.question) {
+      qaArea.classList.remove("visible");
+      idleMsg.style.opacity = "1";
+    } else if (data.question) {
+      idleMsg.style.opacity = "0";
+      qaArea.classList.add("visible");
+
+      const asker = data.asker ? `${data.asker}より：` : "";
+      questionText.textContent = asker + data.question;
+      answerText.textContent = data.answer || "……考え中";
+    }
+
+  } catch (e) {
+    console.error("poll error", e);
+  }
+}
+
+// 1秒ごとにポーリング
+setInterval(poll, 1000);
+poll();
+</script>
+</body>
+</html>
